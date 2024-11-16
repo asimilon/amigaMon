@@ -18,13 +18,30 @@ namespace amigaMon {
         openGLContext.setRenderer(this);
         openGLContext.attachTo(*this);
 
-        startTimerHz(50);
+        vblankAttachment = std::make_unique<juce::VBlankAttachment>(this, [this]() {
+            if(amiga.shouldAdvanceFrame.exchange(false))
+            {
+                amiga.getAmiga().resume();
+                amiga.getAmiga().wakeUp();
+                amiga.shouldPause.store(true);
+            }
+            else if(amiga.shouldPause.exchange(false))
+            {
+                amiga.getAmiga().suspend();
+            }
+            if(!amiga.getAmiga().isPaused())
+            {
+                setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
+                repaint();
+            }
+        });
 
         setSize (width * 2, height * 2);
     }
 
     MainComponent::~MainComponent()
     {
+        vblankAttachment.reset();
         openGLContext.detach();
     }
 
@@ -116,10 +133,33 @@ namespace amigaMon {
         juce::gl::glDisable(juce::gl::GL_TEXTURE_2D);
     }
 
-    void MainComponent::timerCallback()
+    void MainComponent::mouseUp(const juce::MouseEvent &event)
     {
-        setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
-        repaint();
+        if(event.mods.isLeftButtonDown())
+        {
+            amiga.getAmiga().controlPort1.mouse.trigger(RELEASE_LEFT);
+        }
+        else if(event.mods.isRightButtonDown())
+        {
+            amiga.getAmiga().controlPort1.mouse.trigger(RELEASE_RIGHT);
+        }
+    }
+
+    void MainComponent::mouseDown(const juce::MouseEvent &event)
+    {
+        if(event.mods.isLeftButtonDown())
+        {
+            amiga.getAmiga().controlPort1.mouse.trigger(PRESS_LEFT);
+        }
+        else if(event.mods.isRightButtonDown())
+        {
+            amiga.getAmiga().controlPort1.mouse.trigger(PRESS_RIGHT);
+        }
+    }
+
+    void MainComponent::mouseMove(const juce::MouseEvent &event)
+    {
+        amiga.getAmiga().controlPort1.mouse.setXY(event.position.x, event.position.y);
     }
 
     void MainComponent::uploadTexture()
@@ -144,6 +184,7 @@ namespace amigaMon {
             textureBuffer
         );
 
-        amiga.getAmiga().emu->wakeUp();
+        if(!amiga.getAmiga().isPaused())
+            amiga.getAmiga().emu->wakeUp();
     }
 } // amigaMon namespace

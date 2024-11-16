@@ -9,7 +9,7 @@
 #include "Amiga.h"
 
 namespace amigaMon {
-    class MainComponent final : public juce::Component, public juce::OpenGLRenderer, public juce::Timer
+    class MainComponent final : public juce::Component, public juce::OpenGLRenderer
     {
     public:
         explicit MainComponent(amigaMon::Amiga& amigaToUse);
@@ -21,12 +21,16 @@ namespace amigaMon {
         void openGLContextClosing() override;
         void renderOpenGL() override;
 
-        void timerCallback() override;
+        void mouseUp(const juce::MouseEvent& event) override;
+        void mouseDown(const juce::MouseEvent& event) override;
+        void mouseMove(const juce::MouseEvent& event) override;
     private:
         void uploadTexture();
 
-        static constexpr int width = 320 + 24;
-        static constexpr int height = 268;
+        static constexpr int width = 352;
+        static constexpr int height = 276;
+
+        std::unique_ptr<juce::VBlankAttachment> vblankAttachment;
 
         juce::OpenGLContext openGLContext;
         GLuint textureID = 0;

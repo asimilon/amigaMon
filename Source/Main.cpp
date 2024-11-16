@@ -6,6 +6,8 @@ class amigaMonApplication final : public juce::JUCEApplication
 public:
     amigaMonApplication()
     {
+        amiga.getAmiga().set(OPT_MEM_CHIP_RAM, 1024);
+        amiga.getAmiga().set(OPT_MEM_FAST_RAM, 1024);
         amiga.getAmiga().set(OPT_HOST_REFRESH_RATE, 50);
     };
 
@@ -17,17 +19,17 @@ public:
     {
         juce::ignoreUnused (commandLine);
 
-        mainWindow.reset (new MainWindow (getApplicationName(), amiga));
+        amiga.initialiseGUI(getApplicationName(), amiga);
     }
 
     void shutdown() override
     {
-        mainWindow = nullptr; // (deletes our window)
+        amiga.shutdownGUI();
     }
 
     void systemRequestedQuit() override
     {
-        quit();
+        if(amiga.canQuit()) quit();
     }
 
     void anotherInstanceStarted (const juce::String& commandLine) override
@@ -35,35 +37,8 @@ public:
         juce::ignoreUnused (commandLine);
     }
 
-    class MainWindow final : public juce::DocumentWindow
-    {
-    public:
-        explicit MainWindow (juce::String name, amigaMon::Amiga& amiga)
-            : DocumentWindow (name,
-                              juce::Desktop::getInstance().getDefaultLookAndFeel()
-                                                          .findColour (ResizableWindow::backgroundColourId),
-                              DocumentWindow::allButtons)
-        {
-            setUsingNativeTitleBar (true);
-            setContentOwned (new amigaMon::MainComponent(amiga), true);
-
-            setResizable (false, false);
-            centreWithSize (getWidth(), getHeight());
-
-            setVisible (true);
-        }
-
-        void closeButtonPressed() override
-        {
-            JUCEApplication::getInstance()->systemRequestedQuit();
-        }
-    private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
-    };
-
 private:
     amigaMon::Amiga amiga;
-    std::unique_ptr<MainWindow> mainWindow;
 };
 
 START_JUCE_APPLICATION (amigaMonApplication)
