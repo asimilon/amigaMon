@@ -62,8 +62,8 @@ public:
     };
 
 private:
-    std::unique_ptr<MainWindow> mainWindow;
     amigaMon::Amiga amiga;
+    std::unique_ptr<MainWindow> mainWindow;
 };
 
 START_JUCE_APPLICATION (amigaMonApplication)

@@ -28,6 +28,8 @@ include(Source/SourceFiles.cmake)
 
 set(JUCE_DEPENDENCIES
         juce::juce_gui_extra
+        juce::juce_audio_basics
+        juce::juce_audio_devices
         juce::juce_opengl
         vAmigaCore
 )

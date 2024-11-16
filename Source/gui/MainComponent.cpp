@@ -13,17 +13,14 @@ namespace amigaMon {
     MainComponent::MainComponent(amigaMon::Amiga& amigaToUse)
         : amiga(amigaToUse)
     {
-        setSize (width * 2, height * 2);
-
         amiga.start();
 
         openGLContext.setRenderer(this);
         openGLContext.attachTo(*this);
 
-        vblank = std::make_unique<juce::VBlankAttachment>(this, [this]() {
-            setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
-            repaint();
-        });
+        startTimerHz(50);
+
+        setSize (width * 2, height * 2);
     }
 
     MainComponent::~MainComponent()
@@ -31,20 +28,12 @@ namespace amigaMon {
         openGLContext.detach();
     }
 
-    void MainComponent::paint (juce::Graphics& g)
-    {
-    }
-
-    void MainComponent::resized()
-    {
-    }
-
     void MainComponent::setTextureData(const uint32_t *buffer)
     {
         constexpr int textureWidth = 912;
         constexpr int imageWidth = width * 2;
         constexpr int imageHeight = height * 2;
-        constexpr int xOffset = 154 * 2;
+        constexpr int xOffset = 156 * 2;
         constexpr int yOffset = 36 * 2;
 
         glBuffer.reserve(imageWidth * imageHeight);
@@ -61,15 +50,20 @@ namespace amigaMon {
 
                 uint32_t argb = buffer[row + sourceX];
 
+#if JUCE_MAC
                 // Extract color components (ARGB format)
                 uint8_t alpha = (argb >> 24) & 0xFF;
                 uint8_t red = (argb >> 16) & 0xFF;
                 uint8_t green = (argb >> 8) & 0xFF;
                 uint8_t blue = argb & 0xFF;
-
                 uint32_t bgra = (alpha << 24) | (blue << 16) | (green << 8) | red;
-
                 glBuffer[y * imageWidth + x] = bgra;
+#else
+                uint8_t alpha = (argb >> 24) & 0xFF;
+                uint32_t rgb = argb & 0x00FFFFFF << 8;
+                uint32_t rgba = rgb | alpha;
+                glBuffer[y * imageWidth + x] = rgba;
+#endif
             }
         }
 
@@ -120,6 +114,12 @@ namespace amigaMon {
 
         // Disable texture
         juce::gl::glDisable(juce::gl::GL_TEXTURE_2D);
+    }
+
+    void MainComponent::timerCallback()
+    {
+        setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
+        repaint();
     }
 
     void MainComponent::uploadTexture()
