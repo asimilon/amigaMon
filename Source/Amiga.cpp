@@ -5,8 +5,11 @@
 #include "Amiga.h"
 
 #include <Emulator.h>
+#include <gui/ScreenSizeComponent.h>
 #include <juce_core/juce_core.h>
 #include <juce_audio_basics/juce_audio_basics.h>
+
+#include <utility>
 #include "Window.h"
 #include "gui/MainComponent.h"
 #include "gui/ControlsComponent.h"
@@ -17,15 +20,12 @@ namespace amigaMon {
     Amiga::Amiga()
     {
         instance = this;
-#if JUCE_WINDOWS
-        loadROM(std::filesystem::current_path() += std::filesystem::path("\\roms\\kick.rom"));
-#else
-        loadROM(std::filesystem::current_path().parent_path() += std::filesystem::path("/roms/kick.rom"));
-#endif
         vAmiga.emu->initialize();
 
         audioDeviceManager.addAudioCallback(this);
         audioDeviceManager.initialise (0, 2, nullptr, true, {}, nullptr);
+
+        loadSettings();
     }
 
     Amiga::~Amiga()
@@ -135,9 +135,65 @@ namespace amigaMon {
         shouldAdvanceFrame.store(true);
     }
 
+    int Amiga::getDisplayOffsetX() const
+    {
+        return displayOffsetX.load();;
+    }
+
+    int Amiga::getDisplayOffsetY() const
+    {
+        return displayOffsetY.load();
+    }
+
+    void Amiga::setDisplayOffsetX(int newDisplayOffsetX)
+    {
+        displayOffsetX.store(newDisplayOffsetX);
+        sendChangeMessage();
+    }
+
+    void Amiga::setDisplayOffsetY(int newDisplayOffsetY)
+    {
+        displayOffsetY.store(newDisplayOffsetY);
+        sendChangeMessage();
+    }
+
+    int Amiga::getDisplayWidth() const
+    {
+        return displayWidth.load();
+    }
+
+    int Amiga::getDisplayHeight() const
+    {
+        return displayHeight.load();
+    }
+
+    void Amiga::setDisplayWidth(int newDisplayWidth)
+    {
+        displayWidth.store(newDisplayWidth);
+        sendChangeMessage();
+    }
+
+    void Amiga::setDisplayHeight(int newDisplayHeight)
+    {
+        displayHeight.store(newDisplayHeight);
+        sendChangeMessage();
+    }
+
     void Amiga::setStartDirectory(juce::File directory)
     {
         startDirectory = directory;
+    }
+
+    void Amiga::showDisplaySettings()
+    {
+        // show ScreenSizeComponent in a juce::DocumentWindow
+        using namespace amigaMon;
+
+        auto window = std::make_unique<Window<ScreenSizeComponent>>("Display Settings", *this);
+        window->onCloseButtonPressed = [this]() {
+            screenSizeWindow.reset();
+        };
+        screenSizeWindow = std::move(window);
     }
 
     void Amiga::callback(const void *thisRef, Message message)
@@ -150,6 +206,57 @@ namespace amigaMon {
         {
             vAmiga.emu->run();
         }
+    }
+
+    int Amiga::getSizeMultiply() const
+    {
+        return sizeMultiply.load();
+    }
+
+    void Amiga::setSizeMultiply(int newSizeMultiply)
+    {
+        sizeMultiply.store(newSizeMultiply);
+        sendChangeMessage();
+    }
+
+    juce::File Amiga::getSettingsFile()
+    {
+        auto settingsFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+#if JUCE_MAC
+        .getChildFile("Application Support")
+#endif
+        .getChildFile("AmigaMon");
+        if(!settingsFolder.exists())
+        {
+            settingsFolder.createDirectory();
+        }
+        return settingsFolder.getChildFile("amigaMon.settings");
+    }
+
+    void Amiga::loadSettings()
+    {
+        auto settingsFile = getSettingsFile();
+        auto settingsJson = juce::JSON::parse(settingsFile);
+        if(settingsJson.isObject())
+        {
+            auto settings = settingsJson.getDynamicObject();
+            displayHeight.store(settings->getProperty("height"));
+            displayWidth.store(settings->getProperty("width"));
+            displayOffsetX.store(settings->getProperty("xOffset"));
+            displayOffsetY.store(settings->getProperty("yOffset"));
+        }
+    }
+
+    void Amiga::saveSettings()
+    {
+        std::map<juce::Identifier, juce::var> settings;
+        settings["xOffset"] = displayOffsetX.load();
+        settings["yOffset"] = displayOffsetY.load();
+        settings["width"] = displayWidth.load();
+        settings["height"] = displayHeight.load();
+        auto settingsJSON = juce::JSONUtils::makeObject(settings);
+        auto settingsFile = getSettingsFile();
+        settingsFile.replaceWithText(juce::JSON::toString(settingsJSON));
     }
 
     void Amiga::loadROM(const std::filesystem::path &path)

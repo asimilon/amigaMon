@@ -17,6 +17,15 @@ namespace amigaMon {
         [[ maybe_unused ]] amigaMon::Amiga& amiga;
     };
 
+    class SizeComponent final : public IconBase
+    {
+    public:
+        explicit SizeComponent(amigaMon::Amiga& amigaToUse);
+
+        void paint(juce::Graphics& g) override;
+        void mouseUp(const juce::MouseEvent& event) override;
+    };
+
     class LoadDiskComponent final : public IconBase, public juce::Timer
     {
     public:
@@ -75,9 +84,10 @@ namespace amigaMon {
     private:
         [[ maybe_unused ]] amigaMon::Amiga& amiga;
 
-        LoadDiskComponent loadDiskComponent { amiga };
-        LoadRomComponent  loadRomComponent  { amiga };
-        PlayPauseComponent playPauseComponent { amiga };
-        StepFrameComponent stepFrameComponent { amiga };
+        LoadDiskComponent   loadDiskComponent   { amiga };
+        LoadRomComponent    loadRomComponent    { amiga };
+        PlayPauseComponent  playPauseComponent  { amiga };
+        StepFrameComponent  stepFrameComponent  { amiga };
+        SizeComponent       sizeComponent       { amiga };
     };
 } // amigaMon namespace

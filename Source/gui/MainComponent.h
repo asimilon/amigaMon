@@ -9,7 +9,7 @@
 #include "Amiga.h"
 
 namespace amigaMon {
-    class MainComponent final : public juce::Component, public juce::OpenGLRenderer
+    class MainComponent final : public juce::Component, public juce::OpenGLRenderer, public juce::ChangeListener
     {
     public:
         explicit MainComponent(amigaMon::Amiga& amigaToUse);
@@ -24,11 +24,10 @@ namespace amigaMon {
         void mouseUp(const juce::MouseEvent& event) override;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseMove(const juce::MouseEvent& event) override;
+
+        void changeListenerCallback(juce::ChangeBroadcaster *source) override;
     private:
         void uploadTexture();
-
-        static constexpr int width = 352;
-        static constexpr int height = 276;
 
         std::unique_ptr<juce::VBlankAttachment> vblankAttachment;
 

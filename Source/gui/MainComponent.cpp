@@ -36,22 +36,33 @@ namespace amigaMon {
             }
         });
 
-        setSize (width * 2, height * 2);
+        setSize (amiga.getDisplayWidth() * amiga.getSizeMultiply(), amiga.getDisplayHeight() * amiga.getSizeMultiply());
+
+        amiga.addChangeListener(this);
     }
 
     MainComponent::~MainComponent()
     {
+        amiga.removeChangeListener(this);
         vblankAttachment.reset();
         openGLContext.detach();
+    }
+
+    void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
+    {
+        if(source == &amiga)
+        {
+            setSize(amiga.getDisplayWidth() * amiga.getSizeMultiply(), amiga.getDisplayHeight() * amiga.getSizeMultiply());
+        }
     }
 
     void MainComponent::setTextureData(const uint32_t *buffer)
     {
         constexpr int textureWidth = 912;
-        constexpr int imageWidth = width * 2;
-        constexpr int imageHeight = height * 2;
-        constexpr int xOffset = 156 * 2;
-        constexpr int yOffset = 36 * 2;
+        const int xOffset = amiga.getDisplayOffsetX() * amiga.getSizeMultiply();
+        const int yOffset = amiga.getDisplayOffsetY() * amiga.getSizeMultiply();
+        const int imageWidth = amiga.getDisplayWidth() * amiga.getSizeMultiply();
+        const int imageHeight = amiga.getDisplayHeight() * amiga.getSizeMultiply();
 
         glBuffer.reserve(imageWidth * imageHeight);
         glBuffer.resize(imageWidth * imageHeight);
@@ -59,27 +70,36 @@ namespace amigaMon {
         // Scale and copy ARGB data to the OpenGL-compatible buffer
         for (int y = 0; y < imageHeight; ++y)
         {
-            const auto sourceY = (y + yOffset) / 2;
+            const auto sourceY = (y + yOffset) / amiga.getSizeMultiply();
             const auto row = sourceY * textureWidth;
 
             for (int x = 0; x < imageWidth; ++x)
             {
-                const auto sourceX = ((x * 2) + xOffset) / 2;
+                const auto sourceX = (x + xOffset) / amiga.getSizeMultiply();
 
-                uint32_t argb = buffer[row + sourceX];
-
+                uint32_t argb = buffer[row + sourceX * 2];
 #if JUCE_MAC
                 // Extract color components (ARGB format)
                 uint8_t alpha = (argb >> 24) & 0xFF;
                 uint8_t red = (argb >> 16) & 0xFF;
                 uint8_t green = (argb >> 8) & 0xFF;
                 uint8_t blue = argb & 0xFF;
-                uint32_t bgra = (alpha << 24) | (blue << 16) | (green << 8) | red;
-                glBuffer[y * imageWidth + x] = bgra;
+                uint32_t output = (alpha << 24) | (blue << 16) | (green << 8) | red;
 #else
-                glBuffer[y * imageWidth + x] = argb;
+                uint32_t output = argb;
 #endif
+                const auto pixelRow = y * imageWidth + x;
+                for (int sx = 0; sx < amiga.getSizeMultiply(); ++sx) {
+                    glBuffer[pixelRow + sx] = output;
+                }
+                x += amiga.getSizeMultiply() - 1;
             }
+            // copy this line to the next getSizeMultiply() lines
+            for (int sy = 1; sy < amiga.getSizeMultiply(); ++sy) {
+                int out_index = (y + sy) * imageWidth;
+                std::copy(glBuffer.begin() + y * imageWidth, glBuffer.begin() + (y + 1) * imageWidth, glBuffer.begin() + out_index);
+            }
+            y += amiga.getSizeMultiply() - 1;
         }
 
         this->textureBuffer = glBuffer.data();
@@ -170,8 +190,8 @@ namespace amigaMon {
             juce::gl::GL_TEXTURE_2D,
             0, // Mipmap level
             juce::gl::GL_RGBA, // Internal format
-            width * 2,
-            height * 2,
+            amiga.getDisplayWidth() * amiga.getSizeMultiply(),
+            amiga.getDisplayHeight() * amiga.getSizeMultiply(),
             0, // Border
 #if JUCE_MAC
             juce::gl::GL_BGRA, // macOS uses BGRA for ARGB buffers

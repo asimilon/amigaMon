@@ -34,10 +34,14 @@ class Window final : public juce::DocumentWindow
 
         void closeButtonPressed() override
         {
-            juce::JUCEApplication::getInstance()->systemRequestedQuit();
+            onCloseButtonPressed();
         }
 
         static constexpr bool resizable = true;
+
+        std::function<void()> onCloseButtonPressed = []() {
+            juce::JUCEApplication::getInstance()->systemRequestedQuit();
+        };
     private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Window)
     };

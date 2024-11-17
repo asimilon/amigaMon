@@ -9,7 +9,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 namespace amigaMon {
-    class Amiga : public juce::AudioIODeviceCallback {
+    class Amiga : public juce::AudioIODeviceCallback, public juce::ChangeBroadcaster
+    {
     public:
         Amiga();
         ~Amiga() override;
@@ -34,17 +35,36 @@ namespace amigaMon {
 
         juce::File getStartDirectory();
 
-        void advanceFrame();;
+        void advanceFrame();
+
+        int getDisplayOffsetX() const;
+        int getDisplayOffsetY() const;
+        void setDisplayOffsetX(int newDisplayOffsetX);
+        void setDisplayOffsetY(int newDisplayOffsetY);
+
+        int getDisplayWidth() const;
+        int getDisplayHeight() const;
+        void setDisplayWidth(int newDisplayWidth);
+        void setDisplayHeight(int newDisplayHeight);
+
         void setStartDirectory(juce::File directory);
+
+        void showDisplaySettings();
 
         static void callback(const void *thisRef, Message message);
 
         std::atomic<bool> shouldAdvanceFrame { false };
         std::atomic<bool> shouldPause { false };
 
-    private:
+        int getSizeMultiply() const;
+        void setSizeMultiply(int newSizeMultiply);
 
+        void saveSettings();
+    private:
         static constexpr double aspectRatio = 600.0 / 200.0;
+        static juce::File getSettingsFile();
+
+        void loadSettings();
 
         vamiga::VAmiga vAmiga;
 
@@ -54,8 +74,15 @@ namespace amigaMon {
 
         juce::File startDirectory = juce::File::getSpecialLocation(juce::File::userHomeDirectory);
 
+        std::atomic<int> sizeMultiply { 2 };
+        std::atomic<int> displayOffsetX { 76 };
+        std::atomic<int> displayOffsetY { 29 };
+        std::atomic<int> displayWidth { 354 };
+        std::atomic<int> displayHeight { 283 };
+
         std::unique_ptr<juce::DocumentWindow> mainWindow;
         std::unique_ptr<juce::DocumentWindow> controlsWindow;
+        std::unique_ptr<juce::DocumentWindow> screenSizeWindow;
         std::unique_ptr<juce::ComponentBoundsConstrainer> controlsWindowConstrainer;
     };
 } // amigaMon namespace
