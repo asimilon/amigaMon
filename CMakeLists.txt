@@ -15,7 +15,7 @@ createProject("${productName}")
 
 CPMAddPackage(
         NAME vAmiga
-        GIT_REPOSITORY git@github.com:dirkwhoffmann/vAmiga.git
+        GIT_REPOSITORY git@github.com:asimilon/vAmiga.git
         GIT_TAG origin/master
         SOURCE_SUBDIR Emulator
 )

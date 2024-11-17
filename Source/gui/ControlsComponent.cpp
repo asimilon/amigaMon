@@ -93,10 +93,9 @@ namespace amigaMon {
         const auto width = 200 * ((float)getWidth() / 200.0f);
         const auto bounds = getLocalBounds().toFloat().withSizeKeepingCentre(width, textHeight);
         g.drawText ("Load Disk", bounds, juce::Justification::centredTop, true);
-        if(juce::ModifierKeys::currentModifiers.isShiftDown())
-        {
-            g.drawText ("& Reset", bounds, juce::Justification::centredBottom, true);
-        }
+        g.setColour(juce::Colours::black.withAlpha(juce::ModifierKeys::currentModifiers.isShiftDown() ? 1.0f : 0.1f));
+        g.drawText ("& Reset", bounds, juce::Justification::centredBottom, true);
+        g.setColour(juce::Colours::black);
         g.setFont (11.0f * ((float)getHeight() / 200.0f));
         g.drawText (filename, getLocalBounds().reduced(10, 10), juce::Justification::centredBottom, true);
     }
