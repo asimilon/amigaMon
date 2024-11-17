@@ -54,6 +54,7 @@ namespace amigaMon {
         constexpr int yOffset = 36 * 2;
 
         glBuffer.reserve(imageWidth * imageHeight);
+        glBuffer.resize(imageWidth * imageHeight);
 
         // Scale and copy ARGB data to the OpenGL-compatible buffer
         for (int y = 0; y < imageHeight; ++y)
@@ -76,10 +77,7 @@ namespace amigaMon {
                 uint32_t bgra = (alpha << 24) | (blue << 16) | (green << 8) | red;
                 glBuffer[y * imageWidth + x] = bgra;
 #else
-                uint8_t alpha = (argb >> 24) & 0xFF;
-                uint32_t rgb = argb & 0x00FFFFFF << 8;
-                uint32_t rgba = rgb | alpha;
-                glBuffer[y * imageWidth + x] = rgba;
+                glBuffer[y * imageWidth + x] = argb;
 #endif
             }
         }
@@ -178,7 +176,7 @@ namespace amigaMon {
 #if JUCE_MAC
             juce::gl::GL_BGRA, // macOS uses BGRA for ARGB buffers
 #else
-            GL_RGBA, // Other platforms may use RGBA
+            juce::gl::GL_RGBA, // Other platforms may use RGBA
 #endif
             juce::gl::GL_UNSIGNED_BYTE,
             textureBuffer

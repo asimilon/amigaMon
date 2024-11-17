@@ -7,21 +7,38 @@
 #include <Emulator.h>
 
 namespace amigaMon {
-    StepFrameComponent::StepFrameComponent(amigaMon::Amiga &amigaToUse)
+    IconBase::IconBase(amigaMon::Amiga& amigaToUse)
         : amiga(amigaToUse)
     {
         setRepaintsOnMouseActivity(true);
         setSize(200, 200);
     }
 
+    void IconBase::drawBGandSetFont(juce::Graphics& g, float bgAlpha)
+    {
+        g.fillAll (juce::Colours::white.withAlpha(bgAlpha));
+        g.setFont (22.0f * ((float)getHeight() / 200.0f));
+        g.setColour (juce::Colours::black);
+    }
+
+    StepFrameComponent::StepFrameComponent(amigaMon::Amiga &amigaToUse)
+        : IconBase(amigaToUse)
+    {
+        startTimerHz(10);
+    }
+
+    StepFrameComponent::~StepFrameComponent()
+    {
+        stopTimer();
+    }
+
     void StepFrameComponent::paint(juce::Graphics &g)
     {
-        const auto alpha = isMouseButtonDown()
+        const auto alpha = !amiga.getAmiga().emu->isSuspended() && isMouseButtonDown()
                          ? 0.7f
-                         : (!amiga.getAmiga().emu->isSuspended() && isMouseOver() ? 0.6f : 0.5f);
-        g.fillAll (juce::Colours::white.withAlpha(alpha));
-        g.setColour (juce::Colours::black.withAlpha(amiga.getAmiga().emu->isSuspended() ? 0.6f : 1.0f));
-        g.setFont (22.0f * ((float)getHeight() / 200.0f));
+                         : (amiga.getAmiga().emu->isSuspended() && isMouseOver() ? 0.6f : 0.5f);
+        drawBGandSetFont(g, alpha);
+        g.setColour (juce::Colours::black.withAlpha(!amiga.getAmiga().emu->isSuspended() ? 0.6f : 1.0f));
         g.drawText ("Step 1 Frame", getLocalBounds().toFloat(), juce::Justification::centred, true);
     }
 
@@ -33,19 +50,20 @@ namespace amigaMon {
         }
     }
 
-    PlayPauseComponent::PlayPauseComponent(amigaMon::Amiga &amigaToUse)
-        : amiga(amigaToUse)
+    void StepFrameComponent::timerCallback()
     {
-        setRepaintsOnMouseActivity(true);
-        setSize(200, 200);
+        repaint();
+    }
+
+    PlayPauseComponent::PlayPauseComponent(amigaMon::Amiga &amigaToUse)
+        : IconBase(amigaToUse)
+    {
     }
 
     void PlayPauseComponent::paint(juce::Graphics& g)
     {
         const auto alpha = isMouseButtonDown() ? 0.7f : (isMouseOver() ? 0.6f : 0.5f);
-        g.fillAll (juce::Colours::white.withAlpha(alpha));
-        g.setColour (juce::Colours::black);
-        g.setFont (22.0f * ((float)getHeight() / 200.0f));
+        drawBGandSetFont(g, alpha);
         g.drawText (juce::String(amiga.getAmiga().emu->isSuspended() ? "Play" : "Pause"), getLocalBounds().toFloat(), juce::Justification::centred, true);
     }
 
@@ -62,19 +80,15 @@ namespace amigaMon {
     }
 
     LoadDiskComponent::LoadDiskComponent(amigaMon::Amiga &amigaToUse)
-        : amiga(amigaToUse)
+        : IconBase(amigaToUse)
     {
-        setRepaintsOnMouseActivity(true);
-        setSize(200, 200);
         startTimerHz(30);
     }
 
     void LoadDiskComponent::paint(juce::Graphics &g)
     {
         const auto alpha = isMouseButtonDown() ? 0.7f : (isMouseOver() ? 0.6f : 0.5f);
-        g.fillAll (juce::Colours::white.withAlpha(alpha));
-        g.setColour (juce::Colours::black);
-        g.setFont (22.0f * ((float)getHeight() / 200.0f));
+        drawBGandSetFont(g, alpha);
         const auto textHeight = 60 * ((float)getHeight() / 200.0f);
         const auto width = 200 * ((float)getWidth() / 200.0f);
         const auto bounds = getLocalBounds().toFloat().withSizeKeepingCentre(width, textHeight);
@@ -117,10 +131,47 @@ namespace amigaMon {
         repaint();
     }
 
+    LoadRomComponent::LoadRomComponent(amigaMon::Amiga& amigaToUse)
+        : IconBase(amigaToUse)
+    {
+    }
+
+    void LoadRomComponent::paint(juce::Graphics& g)
+    {
+        const auto alpha = isMouseButtonDown() ? 0.7f : (isMouseOver() ? 0.6f : 0.5f);
+        drawBGandSetFont(g, alpha);
+        g.drawText("Load ROM", getLocalBounds(), juce::Justification::centred, true);
+        g.setFont (11.0f * ((float)getHeight() / 200.0f));
+        g.drawText (amiga.getAmiga().mem.getRomTraits().title, getLocalBounds().reduced(10, 10), juce::Justification::centredBottom, true);
+    }
+
+    void LoadRomComponent::mouseUp(const juce::MouseEvent& event)
+    {
+        if(event.mods.isLeftButtonDown())
+        {
+            fileChooser = std::make_unique<juce::FileChooser> ("Select a ROM image",
+                                                               amiga.getStartDirectory(), "*.rom");
+            auto folderChooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+            fileChooser->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
+            {
+                if(chooser.getResult().exists())
+                {
+                    juce::File diskFile (chooser.getResult());
+                    amiga.loadROM(diskFile.getFullPathName().toStdString());
+                }
+                else
+                {
+                    amiga.getAmiga().hardReset();
+                }
+            });
+        }
+    }
+
     ControlsComponent::ControlsComponent(amigaMon::Amiga& amigaToUse)
         : amiga(amigaToUse)
     {
         addAndMakeVisible(loadDiskComponent);
+        addAndMakeVisible(loadRomComponent);
         addAndMakeVisible(playPauseComponent);
         addAndMakeVisible(stepFrameComponent);
 
@@ -132,6 +183,7 @@ namespace amigaMon {
         auto bounds = getLocalBounds();
 
         loadDiskComponent.setBounds(bounds.removeFromLeft(getHeight()).reduced(1, 1));
+        loadRomComponent.setBounds(bounds.removeFromLeft(getHeight()).reduced(1, 1));
 
         {
             auto fourway = bounds.removeFromLeft(getHeight());

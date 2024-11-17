@@ -20,6 +20,7 @@ namespace amigaMon {
 
         void start();
 
+        void loadROM(const std::filesystem::path& path);
         void loadDiskAndReboot(const std::string& path, bool reboot);
 
         vamiga::VAmiga& getAmiga();

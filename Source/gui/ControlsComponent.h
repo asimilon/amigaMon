@@ -7,7 +7,17 @@
 #include "Amiga.h"
 
 namespace amigaMon {
-    class LoadDiskComponent final : public juce::Component, public juce::Timer
+    class IconBase : public juce::Component
+    {
+    public:
+        explicit IconBase(amigaMon::Amiga& amigaToUse);
+    protected:
+        void drawBGandSetFont(juce::Graphics& g, float bgAlpha);
+
+        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+    };
+
+    class LoadDiskComponent final : public IconBase, public juce::Timer
     {
     public:
         explicit LoadDiskComponent(amigaMon::Amiga& amigaToUse);
@@ -17,14 +27,12 @@ namespace amigaMon {
         void mouseUp(const juce::MouseEvent& event) override;
         void timerCallback() override;
     private:
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
-
         std::unique_ptr<juce::FileChooser> fileChooser;
 
         juce::String filename;
     };
 
-    class PlayPauseComponent final : public juce::Component
+    class PlayPauseComponent final : public IconBase
     {
     public:
         explicit PlayPauseComponent(amigaMon::Amiga& amigaToUse);
@@ -32,18 +40,29 @@ namespace amigaMon {
         void paint(juce::Graphics& g) override;
         void mouseUp(const juce::MouseEvent& event) override;
     private:
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
     };
 
-    class StepFrameComponent final : public juce::Component
+    class LoadRomComponent final : public IconBase
     {
     public:
-        explicit StepFrameComponent(amigaMon::Amiga& amigaToUse);
+        explicit LoadRomComponent(amigaMon::Amiga& amigaToUse);
 
         void paint(juce::Graphics& g) override;
         void mouseUp(const juce::MouseEvent& event) override;
     private:
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+        std::unique_ptr<juce::FileChooser> fileChooser;
+    };
+
+    class StepFrameComponent final : public IconBase, public juce::Timer
+    {
+    public:
+        explicit StepFrameComponent(amigaMon::Amiga& amigaToUse);
+        ~StepFrameComponent() override;
+
+        void paint(juce::Graphics& g) override;
+        void mouseUp(const juce::MouseEvent& event) override;
+        void timerCallback() override;
+    private:
     };
 
     class ControlsComponent final : public juce::Component
@@ -57,6 +76,7 @@ namespace amigaMon {
         [[ maybe_unused ]] amigaMon::Amiga& amiga;
 
         LoadDiskComponent loadDiskComponent { amiga };
+        LoadRomComponent  loadRomComponent  { amiga };
         PlayPauseComponent playPauseComponent { amiga };
         StepFrameComponent stepFrameComponent { amiga };
     };

@@ -17,7 +17,11 @@ namespace amigaMon {
     Amiga::Amiga()
     {
         instance = this;
-        vAmiga.mem.loadRom(std::filesystem::current_path().parent_path() += std::filesystem::path("/roms/kick.rom"));
+#if JUCE_WINDOWS
+        loadROM(std::filesystem::current_path() += std::filesystem::path("\\roms\\kick.rom"));
+#else
+        loadROM(std::filesystem::current_path().parent_path() += std::filesystem::path("/roms/kick.rom"));
+#endif
         vAmiga.emu->initialize();
 
         audioDeviceManager.addAudioCallback(this);
@@ -56,7 +60,11 @@ namespace amigaMon {
 
     void Amiga::start()
     {
-        vAmiga.launch(this, &Amiga::callback);
+        auto romTraits = vAmiga.mem.getRomTraits();
+        if(romTraits.crc != 0)
+        {
+            vAmiga.launch(this, &Amiga::callback);
+        }
     }
 
     void Amiga::loadDiskAndReboot(const std::string &path, bool reboot)
@@ -142,5 +150,15 @@ namespace amigaMon {
         {
             vAmiga.emu->run();
         }
+    }
+
+    void Amiga::loadROM(const std::filesystem::path &path)
+    {
+        if(exists(path))
+        {
+            vAmiga.mem.loadRom(path);
+        }
+        if(!vAmiga.isLaunched())
+            start();
     }
 } // amigaMon namespace
