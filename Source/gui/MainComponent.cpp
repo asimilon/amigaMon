@@ -58,7 +58,6 @@ namespace amigaMon {
 
     void MainComponent::setTextureData(const uint32_t *buffer)
     {
-        constexpr int textureWidth = 912;
         const int xOffset = amiga.getDisplayOffsetX() * amiga.getSizeMultiply();
         const int yOffset = amiga.getDisplayOffsetY() * amiga.getSizeMultiply();
         const int imageWidth = amiga.getDisplayWidth() * amiga.getSizeMultiply();
@@ -71,6 +70,8 @@ namespace amigaMon {
         for (int y = 0; y < imageHeight; ++y)
         {
             const auto sourceY = (y + yOffset) / amiga.getSizeMultiply();
+            if(sourceY >= textureHeight)
+                break;
             const auto row = sourceY * textureWidth;
 
             for (int x = 0; x < imageWidth; ++x)

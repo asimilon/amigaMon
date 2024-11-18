@@ -3,7 +3,7 @@
 //
 
 #include "ScreenSizeComponent.h"
-
+#include "MainComponent.h"
 #include <Emulator.h>
 
 namespace amigaMon {
@@ -11,7 +11,7 @@ namespace amigaMon {
         : amiga(amigaToUse)
     {
         startTimerHz(1);
-        setSize(textureWidth / 2, textureHeight);
+        setSize(MainComponent::textureWidth / 2, MainComponent::textureHeight);
     }
 
     ScreenSizeComponent::~ScreenSizeComponent()
@@ -22,29 +22,7 @@ namespace amigaMon {
     void ScreenSizeComponent::paint(juce::Graphics& g)
     {
         g.fillAll(juce::Colours::black);
-        auto pixels = amiga.getAmiga().emu->getTexture().pixels.ptr;
-        // make a juce::Image from the pixels
-        juce::Image image(juce::Image::ARGB, textureWidth, textureHeight, true);
-        juce::Image::BitmapData bitmapData(image, juce::Image::BitmapData::writeOnly);
-
-        for (int y = 0; y < textureHeight; ++y)
-        {
-            for (int x = 0; x < textureWidth; ++x)
-            {
-                auto pixel = pixels[y * textureWidth + x];
-                // rearrange the pixel order to RGBA
-                const auto alpha = (pixel >> 24) & 0xFF;
-                const auto red = (pixel >> 16) & 0xFF;
-                const auto green = (pixel >> 8) & 0xFF;
-                const auto blue = pixel & 0xFF;
-                auto ptr = bitmapData.getPixelPointer(x, y);
-                ptr[0] = red;
-                ptr[1] = green;
-                ptr[2] = blue;
-                ptr[3] = alpha;
-            }
-        }
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, textureWidth, textureHeight);
+        g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, MainComponent::textureWidth, MainComponent::textureHeight);
         g.setColour(juce::Colours::black.withAlpha(0.6f));
         g.fillRect(getLocalBounds());
 
@@ -58,7 +36,7 @@ namespace amigaMon {
         {
             juce::Graphics::ScopedSaveState state(g);
             g.reduceClipRegion(path);
-            g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, textureWidth, textureHeight);
+            g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, MainComponent::textureWidth, MainComponent::textureHeight);
         }
 
         g.setColour(juce::Colours::white);
@@ -69,7 +47,14 @@ namespace amigaMon {
         g.drawLine(bounds.getRight(), centre.y, getWidth(), centre.y);
         g.drawLine(centre.x, 0.0f, centre.x, bounds.getY());
         g.drawLine(centre.x, bounds.getBottom(), centre.x, getHeight());
-        switch(currentDrag)
+        showLabels(currentDrag, g, bounds, centre);
+        showLabels(mouseState, g, bounds, centre);
+    }
+
+    void ScreenSizeComponent::showLabels(const MouseState& stateToCheck, juce::Graphics& g,
+                                         const juce::Rectangle<int>& bounds, const juce::Point<float>& centre)
+    {
+        switch(stateToCheck)
         {
             case MouseState::resizeLeft:
             {
@@ -114,12 +99,32 @@ namespace amigaMon {
 
     void ScreenSizeComponent::timerCallback()
     {
+        auto pixels = amiga.getAmiga().emu->getTexture().pixels.ptr;
+        // make a juce::Image from the pixels
+        image = juce::Image(juce::Image::ARGB, MainComponent::textureWidth, MainComponent::textureHeight, true);
+        juce::Image::BitmapData bitmapData(image, juce::Image::BitmapData::writeOnly);
+
+        for (int y = 0; y < MainComponent::textureHeight; ++y) {
+            for (int x = 0; x < MainComponent::textureWidth; ++x) {
+                auto pixel = pixels[y * MainComponent::textureWidth + x];
+                // rearrange the pixel order to RGBA
+                const auto alpha = (pixel >> 24) & 0xFF;
+                const auto red = (pixel >> 16) & 0xFF;
+                const auto green = (pixel >> 8) & 0xFF;
+                const auto blue = pixel & 0xFF;
+                auto ptr = bitmapData.getPixelPointer(x, y);
+                ptr[0] = red;
+                ptr[1] = green;
+                ptr[2] = blue;
+                ptr[3] = alpha;
+            }
+        }
         repaint();
     }
 
     void ScreenSizeComponent::mouseMove(const juce::MouseEvent &event)
     {
-        constexpr auto gap = 3;
+        constexpr auto gap = 5;
         setMouseCursor(juce::MouseCursor::NormalCursor);
         mouseState = MouseState::none;
         if(event.y >= amiga.getDisplayOffsetY() && event.y <= amiga.getDisplayOffsetY() + amiga.getDisplayHeight())

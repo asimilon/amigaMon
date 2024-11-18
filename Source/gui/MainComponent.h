@@ -26,6 +26,9 @@ namespace amigaMon {
         void mouseMove(const juce::MouseEvent& event) override;
 
         void changeListenerCallback(juce::ChangeBroadcaster *source) override;
+
+        static constexpr int textureWidth = 912;
+        static constexpr int textureHeight = 313;
     private:
         void uploadTexture();
 

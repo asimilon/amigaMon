@@ -22,11 +22,6 @@ namespace amigaMon {
         void mouseDrag(const juce::MouseEvent &event) override;
         void mouseUp(const juce::MouseEvent &event) override;
     private:
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
-
-        static constexpr int textureWidth = 912;
-        static constexpr int textureHeight = 342;
-
         enum class MouseState
         {
             none,
@@ -36,9 +31,16 @@ namespace amigaMon {
             resizeBottom
         };
 
+        void showLabels(const MouseState& stateToCheck, juce::Graphics& g,
+                        const juce::Rectangle<int>& bounds, const juce::Point<float>& centre);
+
+        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+
         MouseState mouseState = MouseState::none;
         MouseState currentDrag = MouseState::none;
         juce::Point<float> lastMousePos;
         float cumulativeDelta = 0.0f;
+
+        juce::Image image;
     };
 } // amigaMon namespace
