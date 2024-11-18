@@ -15,6 +15,8 @@ namespace amigaMon {
 
         void addFile(juce::File file);
     private:
+        void saveRecents();
+
         const juce::File recentsFile;
         const int recentFilesMaxSize;
 

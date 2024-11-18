@@ -26,6 +26,11 @@ namespace amigaMon {
 
     RecentFiles::~RecentFiles()
     {
+        saveRecents();
+    }
+
+    void RecentFiles::saveRecents()
+    {
         // save the recent files as strings, one per line
         juce::TemporaryFile tempFile(recentsFile);
         juce::FileOutputStream outputStream(tempFile.getFile());
@@ -57,5 +62,6 @@ namespace amigaMon {
         {
             recentFiles.pop_back();
         }
+        saveRecents();
     }
 } // amigaMon namespace

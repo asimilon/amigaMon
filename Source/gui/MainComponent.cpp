@@ -56,7 +56,7 @@ namespace amigaMon {
         {
             setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
             canRepaint.store(true);
-            amiga.getAmiga().emu->wakeUp();
+            amiga.getAmiga().wakeUp();
         }
     }
 
