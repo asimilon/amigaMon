@@ -6,8 +6,8 @@ class amigaMonApplication final : public juce::JUCEApplication
 public:
     amigaMonApplication()
     {
-        amiga.getAmiga().set(OPT_MEM_CHIP_RAM, 1024);
-        amiga.getAmiga().set(OPT_MEM_FAST_RAM, 1024);
+        amiga.getAmiga().set(OPT_MEM_CHIP_RAM, 512);
+        amiga.getAmiga().set(OPT_MEM_SLOW_RAM, 512);
         amiga.getAmiga().set(OPT_HOST_REFRESH_RATE, 50);
     };
 

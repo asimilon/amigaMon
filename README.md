@@ -20,3 +20,8 @@ at line 306 just before:
 enum BadgeIconType
 ```
 I'm sure JUCE will fix this soon.
+
+## Acknowledgements
+
+Stereo icon : [Stereo Speaker Icon template](https://www.vecteezy.com/vector-art/6693185-stereo-speaker-icon-template-black-color-editable-stereo-speaker-icon-symbol-flat-vector-illustration-for-graphic-and-web-design)  
+[Remote Vectors by Vecteezy](https://www.vecteezy.com/free-vector/remote)

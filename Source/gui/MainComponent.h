@@ -9,7 +9,8 @@
 #include "Amiga.h"
 
 namespace amigaMon {
-    class MainComponent final : public juce::Component, public juce::OpenGLRenderer, public juce::ChangeListener
+    class MainComponent final : public juce::Component, public juce::OpenGLRenderer,
+                                public juce::ChangeListener, public juce::HighResolutionTimer
     {
     public:
         explicit MainComponent(amigaMon::Amiga& amigaToUse);
@@ -27,6 +28,8 @@ namespace amigaMon {
 
         void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 
+        void hiResTimerCallback() override;
+
         static constexpr int textureWidth = 912;
         static constexpr int textureHeight = 313;
     private:
@@ -42,6 +45,7 @@ namespace amigaMon {
         amigaMon::Amiga& amiga;
 
         std::vector<uint32_t> glBuffer;
+        std::atomic<bool> canRepaint { false };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
     };

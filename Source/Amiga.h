@@ -51,6 +51,11 @@ namespace amigaMon {
 
         void showDisplaySettings();
 
+        float getAudioMixFactor() const;
+        void  setAudioMixFactor(float newAudioMixFactor);
+
+        void showSaveSettingsPopup();
+
         static void callback(const void *thisRef, Message message);
 
         std::atomic<bool> shouldAdvanceFrame { false };
@@ -60,6 +65,8 @@ namespace amigaMon {
         void setSizeMultiply(int newSizeMultiply);
 
         void saveSettings();
+
+        static juce::File getSettingsFolder();
     private:
         static constexpr double aspectRatio = 600.0 / 200.0;
         static juce::File getSettingsFile();
@@ -79,6 +86,7 @@ namespace amigaMon {
         std::atomic<int> displayOffsetY { 29 };
         std::atomic<int> displayWidth { 354 };
         std::atomic<int> displayHeight { 283 };
+        std::atomic<float> audioMixFactor { 0.5f };
 
         std::unique_ptr<juce::DocumentWindow> mainWindow;
         std::unique_ptr<juce::DocumentWindow> controlsWindow;

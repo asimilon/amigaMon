@@ -19,19 +19,8 @@ namespace amigaMon {
         openGLContext.attachTo(*this);
 
         vblankAttachment = std::make_unique<juce::VBlankAttachment>(this, [this]() {
-            if(amiga.shouldAdvanceFrame.exchange(false))
+            if (canRepaint.exchange(false))
             {
-                amiga.getAmiga().resume();
-                amiga.getAmiga().wakeUp();
-                amiga.shouldPause.store(true);
-            }
-            else if(amiga.shouldPause.exchange(false))
-            {
-                amiga.getAmiga().suspend();
-            }
-            if(!amiga.getAmiga().isPaused())
-            {
-                setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
                 repaint();
             }
         });
@@ -39,14 +28,38 @@ namespace amigaMon {
         setSize (amiga.getDisplayWidth() * amiga.getSizeMultiply(), amiga.getDisplayHeight() * amiga.getSizeMultiply());
 
         amiga.addChangeListener(this);
+        // start timer at 50Hz
+        startTimer(1000.0f / 50.0f);
     }
 
     MainComponent::~MainComponent()
     {
+        stopTimer();
         amiga.removeChangeListener(this);
         vblankAttachment.reset();
         openGLContext.detach();
     }
+
+    void MainComponent::hiResTimerCallback()
+    {
+        if(amiga.shouldAdvanceFrame.exchange(false))
+        {
+            amiga.getAmiga().resume();
+            amiga.getAmiga().wakeUp();
+            amiga.shouldPause.store(true);
+        }
+        else if(amiga.shouldPause.exchange(false))
+        {
+            amiga.getAmiga().suspend();
+        }
+        if(!amiga.getAmiga().isPaused())
+        {
+            setTextureData(amiga.getAmiga().emu->getTexture().pixels.ptr);
+            canRepaint.store(true);
+            amiga.getAmiga().emu->wakeUp();
+        }
+    }
+
 
     void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
     {
@@ -58,10 +71,11 @@ namespace amigaMon {
 
     void MainComponent::setTextureData(const uint32_t *buffer)
     {
-        const int xOffset = amiga.getDisplayOffsetX() * amiga.getSizeMultiply();
-        const int yOffset = amiga.getDisplayOffsetY() * amiga.getSizeMultiply();
-        const int imageWidth = amiga.getDisplayWidth() * amiga.getSizeMultiply();
-        const int imageHeight = amiga.getDisplayHeight() * amiga.getSizeMultiply();
+        constexpr int textureWidth = 912;
+        const int xOffset = amiga.getDisplayOffsetX();
+        const int yOffset = amiga.getDisplayOffsetY();
+        const int imageWidth = amiga.getDisplayWidth() * 2;
+        const int imageHeight = amiga.getDisplayHeight();
 
         glBuffer.reserve(imageWidth * imageHeight);
         glBuffer.resize(imageWidth * imageHeight);
@@ -69,16 +83,16 @@ namespace amigaMon {
         // Scale and copy ARGB data to the OpenGL-compatible buffer
         for (int y = 0; y < imageHeight; ++y)
         {
-            const auto sourceY = (y + yOffset) / amiga.getSizeMultiply();
+            const auto sourceY = y + yOffset;
             if(sourceY >= textureHeight)
                 break;
             const auto row = sourceY * textureWidth;
 
             for (int x = 0; x < imageWidth; ++x)
             {
-                const auto sourceX = (x + xOffset) / amiga.getSizeMultiply();
+                const auto sourceX = x + xOffset * 2;
 
-                uint32_t argb = buffer[row + sourceX * 2];
+                uint32_t argb = buffer[row + sourceX];
 #if JUCE_MAC
                 // Extract color components (ARGB format)
                 uint8_t alpha = (argb >> 24) & 0xFF;
@@ -89,18 +103,8 @@ namespace amigaMon {
 #else
                 uint32_t output = argb;
 #endif
-                const auto pixelRow = y * imageWidth + x;
-                for (int sx = 0; sx < amiga.getSizeMultiply(); ++sx) {
-                    glBuffer[pixelRow + sx] = output;
-                }
-                x += amiga.getSizeMultiply() - 1;
+                glBuffer[y * imageWidth + x] = output;
             }
-            // copy this line to the next getSizeMultiply() lines
-            for (int sy = 1; sy < amiga.getSizeMultiply(); ++sy) {
-                int out_index = (y + sy) * imageWidth;
-                std::copy(glBuffer.begin() + y * imageWidth, glBuffer.begin() + (y + 1) * imageWidth, glBuffer.begin() + out_index);
-            }
-            y += amiga.getSizeMultiply() - 1;
         }
 
         this->textureBuffer = glBuffer.data();
@@ -189,10 +193,10 @@ namespace amigaMon {
         // Upload the ARGB buffer to the texture
         juce::gl::glTexImage2D(
             juce::gl::GL_TEXTURE_2D,
-            0, // Mipmap level
+            0, // Mipmap level must be 0
             juce::gl::GL_RGBA, // Internal format
-            amiga.getDisplayWidth() * amiga.getSizeMultiply(),
-            amiga.getDisplayHeight() * amiga.getSizeMultiply(),
+            amiga.getDisplayWidth() * 2,
+            amiga.getDisplayHeight(),
             0, // Border
 #if JUCE_MAC
             juce::gl::GL_BGRA, // macOS uses BGRA for ARGB buffers
@@ -202,8 +206,5 @@ namespace amigaMon {
             juce::gl::GL_UNSIGNED_BYTE,
             textureBuffer
         );
-
-        if(!amiga.getAmiga().isPaused())
-            amiga.getAmiga().emu->wakeUp();
     }
 } // amigaMon namespace

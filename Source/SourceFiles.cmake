@@ -5,6 +5,14 @@ set(SourceFiles
         gui/MainComponent.cpp
         gui/ControlsComponent.cpp
         gui/ScreenSizeComponent.cpp
+        gui/RecentFiles.cpp
+
+        gui/controls/AudioMixComponent.cpp
+        gui/controls/IconBase.cpp
+        gui/controls/LoadDiskComponent.cpp
+        gui/controls/LoadRomComponent.cpp
+        gui/controls/PlayPauseStepComponents.cpp
+        gui/controls/SizeComponent.cpp
 )
 
 list(TRANSFORM SourceFiles PREPEND Source/)

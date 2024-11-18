@@ -153,7 +153,6 @@ namespace amigaMon {
                 mouseState = MouseState::resizeBottom;
             }
         }
-        repaint();
     }
 
     void ScreenSizeComponent::mouseDown(const juce::MouseEvent &event)
@@ -236,11 +235,7 @@ namespace amigaMon {
     {
         if(event.mods.isPopupMenu())
         {
-            juce::PopupMenu menu;
-            menu.addItem("Save Settings", [this]() {
-                amiga.saveSettings();
-            });
-            menu.showMenuAsync(juce::PopupMenu::Options());
+            amiga.showSaveSettingsPopup();
         }
         currentDrag = MouseState::none;
         repaint();

@@ -44,6 +44,10 @@ namespace amigaMon {
         controlsWindow = std::make_unique<Window<ControlsComponent>>("Controls", amiga,
                                                                      Window<ControlsComponent>::resizable,
                                                                      controlsWindowConstrainer.get());
+        auto display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        mainWindow->setTopLeftPosition(display->userArea.getCentre().getX() - mainWindow->getWidth(),
+                                       display->userArea.getCentre().getY() - mainWindow->getHeight());
+        controlsWindow->setTopLeftPosition(mainWindow->getRight(), mainWindow->getY());
     }
 
     void Amiga::shutdownGUI()
@@ -115,9 +119,13 @@ namespace amigaMon {
         {
             auto left = outputChannelData[leftChannel][index];
             auto right = outputChannelData[rightChannel][index];
-            constexpr auto factor = 0.3f;
-            outputChannelData[leftChannel][index] = left + factor * right;
-            outputChannelData[rightChannel][index] = right + factor * left;
+            auto gain = 1.0f;
+            if(audioMixFactor.load() > 0.5f)
+            {
+                gain = 1.0f - (audioMixFactor.load() - 0.5f) * 0.6f;
+            }
+            outputChannelData[leftChannel][index]  = (left + audioMixFactor * right) * gain;
+            outputChannelData[rightChannel][index] = (right + audioMixFactor * left) * gain;
         }
 
         for (int i = 2; i < numOutputChannels; ++i)
@@ -196,6 +204,25 @@ namespace amigaMon {
         screenSizeWindow = std::move(window);
     }
 
+    float Amiga::getAudioMixFactor() const
+    {
+        return audioMixFactor.load();
+    }
+
+    void Amiga::setAudioMixFactor(float newAudioMixFactor)
+    {
+        audioMixFactor.store(newAudioMixFactor);
+    }
+
+    void Amiga::showSaveSettingsPopup()
+    {
+        juce::PopupMenu menu;
+        menu.addItem("Save Settings", [this]() {
+            saveSettings();
+        });
+        menu.showMenuAsync(juce::PopupMenu::Options());
+    }
+
     void Amiga::callback(const void *thisRef, Message message)
     {
         if(instance == nullptr)
@@ -219,7 +246,7 @@ namespace amigaMon {
         sendChangeMessage();
     }
 
-    juce::File Amiga::getSettingsFile()
+    juce::File Amiga::getSettingsFolder()
     {
         auto settingsFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
 #if JUCE_MAC
@@ -230,7 +257,12 @@ namespace amigaMon {
         {
             settingsFolder.createDirectory();
         }
-        return settingsFolder.getChildFile("amigaMon.settings");
+        return settingsFolder;
+    }
+
+    juce::File Amiga::getSettingsFile()
+    {
+        return getSettingsFolder().getChildFile("amigaMon.settings");
     }
 
     void Amiga::loadSettings()
@@ -244,6 +276,7 @@ namespace amigaMon {
             displayWidth.store(settings->getProperty("width"));
             displayOffsetX.store(settings->getProperty("xOffset"));
             displayOffsetY.store(settings->getProperty("yOffset"));
+            audioMixFactor.store(settings->getProperty("audioMixFactor"));
         }
     }
 
@@ -254,6 +287,7 @@ namespace amigaMon {
         settings["yOffset"] = displayOffsetY.load();
         settings["width"] = displayWidth.load();
         settings["height"] = displayHeight.load();
+        settings["audioMixFactor"] = audioMixFactor.load();
         auto settingsJSON = juce::JSONUtils::makeObject(settings);
         auto settingsFile = getSettingsFile();
         settingsFile.replaceWithText(juce::JSON::toString(settingsJSON));
