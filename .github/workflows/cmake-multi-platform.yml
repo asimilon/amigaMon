@@ -43,6 +43,26 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
+    - name: Install dependencies on Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          g++ \
+          libgtk-3-dev \
+          libfreetype6-dev \
+          libx11-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxcursor-dev \
+          mesa-common-dev \
+          libasound2-dev \
+          freeglut3-dev \
+          libxcomposite-dev \
+          libcurl4-openssl-dev \
+          libwebkit2gtk-4.0-37 \
+          libwebkit2gtk-4.0-dev
+
     - name: Set reusable strings
       id: strings
       shell: bash
@@ -64,7 +84,7 @@ jobs:
     - name: Compress build artifacts
       if: success()
       run: |
-        zip -r ${{ steps.strings.outputs.artifact-name }} ${{ steps.strings.outputs.build-output-dir }}
+        zip -r ${{ steps.strings.outputs.artifact-name }} ${{ steps.strings.outputs.build-output-dir }}/amigaMon_artefacts/Release
 
     - name: Upload build artifacts
       if: success()
