@@ -100,11 +100,11 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
 
     set_target_properties("${appName}" PROPERTIES XCODE_GENERATE_SCHEME ON)
 
-    target_compile_options("${appName}" PRIVATE 
-        $<$<CXX_COMPILER_ID:GNU>:-Wno-error>       # For GCC
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-error>      # For Clang
-        $<$<CXX_COMPILER_ID:MSVC>:/wd4996>          # For MSVC, example to disable a specific warning
-    )
+    if(MSVC)
+        target_compile_options("${appName}" PUBLIC /wd4996)
+    else()
+        target_compile_options("${appName}" PUBLIC -Wno-error)
+    endif()
 endfunction()
 
 function (cleanTargetLayout)
