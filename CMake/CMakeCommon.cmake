@@ -100,11 +100,11 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
 
     set_target_properties("${appName}" PROPERTIES XCODE_GENERATE_SCHEME ON)
 
-    if(MSVC)
-        target_compile_options("${appName}" PUBLIC /wd4996)
-    else()
-        target_compile_options("${appName}" PUBLIC -Wno-error)
-    endif()
+    target_compile_options("${appName}"
+            PUBLIC
+                -Wno-error=unused-variable
+                -Wno-error=sign-compare
+    )
 endfunction()
 
 function (cleanTargetLayout)
