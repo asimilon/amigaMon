@@ -30,10 +30,10 @@ namespace amigaMon {
         {
             auto fourway = bounds.removeFromLeft(getHeight());
             auto top = fourway.removeFromTop(fourway.getHeight() / 2);
-            [[ maybe_unused ]] auto topLeft = top.removeFromLeft(top.getHeight()).reduced(1, 1);
-            [[ maybe_unused ]] auto topRight = top.reduced(1, 1);
-            [[ maybe_unused ]] auto bottomLeft = fourway.removeFromLeft(fourway.getHeight()).reduced(1, 1);
-            [[ maybe_unused ]] auto bottomRight = fourway.reduced(1, 1);
+            auto topLeft = top.removeFromLeft(top.getHeight()).reduced(1, 1);
+            auto topRight = top.reduced(1, 1);
+            auto bottomLeft = fourway.removeFromLeft(fourway.getHeight()).reduced(1, 1);
+            auto bottomRight = fourway.reduced(1, 1);
 
             playPauseComponent.setBounds(topLeft);
             stepFrameComponent.setBounds(topRight);

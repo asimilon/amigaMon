@@ -20,7 +20,7 @@ namespace amigaMon {
         void paint(juce::Graphics& g) override;
         void resized() override;
     private:
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+        amigaMon::Amiga& amiga;
 
         LoadDiskComponent   loadDiskComponent   { amiga };
         LoadRomComponent    loadRomComponent    { amiga };

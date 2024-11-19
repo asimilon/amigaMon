@@ -34,7 +34,7 @@ namespace amigaMon {
         void showLabels(const MouseState& stateToCheck, juce::Graphics& g,
                         const juce::Rectangle<int>& bounds, const juce::Point<float>& centre);
 
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+        amigaMon::Amiga& amiga;
 
         MouseState mouseState = MouseState::none;
         MouseState currentDrag = MouseState::none;

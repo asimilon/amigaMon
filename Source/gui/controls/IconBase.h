@@ -16,6 +16,6 @@ namespace amigaMon {
     protected:
         void drawBGandSetFont(juce::Graphics& g, float bgAlpha);
 
-        [[ maybe_unused ]] amigaMon::Amiga& amiga;
+        amigaMon::Amiga& amiga;
     };
 } // amigaMon namespace
