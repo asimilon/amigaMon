@@ -105,6 +105,7 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
                 PUBLIC
                 /wd4101
                 /wd4018
+                /wd4127
         )
     else ()
         target_compile_options("${appName}"
