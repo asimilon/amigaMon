@@ -24,6 +24,8 @@ namespace amigaMon {
 
         void mouseUp(const juce::MouseEvent& event) override;
         void mouseDown(const juce::MouseEvent& event) override;
+        void mouseEnter(const juce::MouseEvent &event) override;
+        void mouseExit(const juce::MouseEvent &event) override;
 
         void changeListenerCallback(juce::ChangeBroadcaster *source) override;
 

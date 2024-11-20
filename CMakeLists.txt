@@ -37,6 +37,7 @@ set(JUCE_DEPENDENCIES
 set(JUCE_OPTIONS
         JUCE_APPLICATION_NAME_STRING="${productName}"
         JUCE_APPLICATION_VERSION_STRING="${PROJECT_VERSION}"
+        JUCE_WEB_BROWSER=0
 )
 
 target_compile_definitions(vAmigaCore

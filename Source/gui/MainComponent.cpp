@@ -187,6 +187,16 @@ namespace amigaMon {
         }
     }
 
+    void MainComponent::mouseEnter(const juce::MouseEvent &event)
+    {
+        setMouseCursor(juce::MouseCursor::NoCursor);
+    }
+
+    void MainComponent::mouseExit(const juce::MouseEvent &event)
+    {
+        setMouseCursor(juce::MouseCursor::NormalCursor);
+    }
+
     void MainComponent::uploadTexture()
     {
         // Bind the texture
