@@ -100,15 +100,19 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
 
     set_target_properties("${appName}" PROPERTIES XCODE_GENERATE_SCHEME ON)
 
-    target_compile_options("${appName}"
-            PUBLIC
-            $<$<CXX_COMPILER_ID:MSVC>:/wd4101> # Suppress unused variable warning
-            $<$<CXX_COMPILER_ID:MSVC>:/wd4018> # Suppress signed/unsigned mismatch warning
-            $<$<CXX_COMPILER_ID:GNU>:-Wno-error=unused-variable>
-            $<$<CXX_COMPILER_ID:GNU>:-Wno-error=sign-compare>
-            $<$<CXX_COMPILER_ID:Clang>:-Wno-error=unused-variable>
-            $<$<CXX_COMPILER_ID:Clang>:-Wno-error=sign-compare>
-    )
+    if(MSVC)
+        target_compile_options("${appName}"
+                PUBLIC
+                /wd4101
+                /wd4018
+        )
+    else ()
+        target_compile_options("${appName}"
+                PUBLIC
+                -Wno-error=unused-variable
+                -Wno-error=sign-compare
+        )
+    endif()
 
 endfunction()
 
