@@ -101,14 +101,14 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
     set_target_properties("${appName}" PROPERTIES XCODE_GENERATE_SCHEME ON)
 
     if(MSVC)
-        target_compile_options("${appName}"
+        target_compile_options(${appName}
                 PUBLIC
-                /wd4101
-                /wd4018
-                /wd4127
+                "/wd4101"
+                "/wd4018"
+                "/wd4127"
         )
     else ()
-        target_compile_options("${appName}"
+        target_compile_options(${appName}
                 PUBLIC
                 -Wno-error=unused-variable
                 -Wno-error=sign-compare

@@ -23,6 +23,13 @@ namespace amigaMon {
             {
                 repaint();
             }
+            auto mousePosition = juce::Desktop::getInstance().getMousePosition();
+            auto componentBounds = getScreenBounds();
+            if(componentBounds.contains(mousePosition))
+            {
+                amiga.getAmiga().controlPort1.mouse.setXY(mousePosition.getX() - componentBounds.getX(),
+                                                          mousePosition.getY() - componentBounds.getY());
+            }
         });
 
         setSize (amiga.getDisplayWidth() * amiga.getSizeMultiply(), amiga.getDisplayHeight() * amiga.getSizeMultiply());
@@ -178,11 +185,6 @@ namespace amigaMon {
         {
             amiga.getAmiga().controlPort1.mouse.trigger(PRESS_RIGHT);
         }
-    }
-
-    void MainComponent::mouseMove(const juce::MouseEvent &event)
-    {
-        amiga.getAmiga().controlPort1.mouse.setXY(event.position.x, event.position.y);
     }
 
     void MainComponent::uploadTexture()
