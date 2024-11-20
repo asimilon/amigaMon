@@ -102,9 +102,14 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
 
     target_compile_options("${appName}"
             PUBLIC
-                -Wno-error=unused-variable
-                -Wno-error=sign-compare
+            $<$<CXX_COMPILER_ID:MSVC>:/wd4101> # Suppress unused variable warning
+            $<$<CXX_COMPILER_ID:MSVC>:/wd4018> # Suppress signed/unsigned mismatch warning
+            $<$<CXX_COMPILER_ID:GNU>:-Wno-error=unused-variable>
+            $<$<CXX_COMPILER_ID:GNU>:-Wno-error=sign-compare>
+            $<$<CXX_COMPILER_ID:Clang>:-Wno-error=unused-variable>
+            $<$<CXX_COMPILER_ID:Clang>:-Wno-error=sign-compare>
     )
+
 endfunction()
 
 function (cleanTargetLayout)
