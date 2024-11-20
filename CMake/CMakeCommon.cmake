@@ -51,7 +51,7 @@ macro (createProject projectName)
         # add_subdirectory(JUCE)
         CPMAddPackage(
                 NAME JUCE
-                GIT_REPOSITORY git@github.com:juce-framework/JUCE.git
+                GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
                 GIT_TAG origin/master)
 
         set(ProjectDependsOn)
