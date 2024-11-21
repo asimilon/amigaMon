@@ -112,6 +112,7 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
                 PUBLIC
                 -Wno-error=unused-variable
                 -Wno-error=sign-compare
+                -Wno-error=maybe-uninitialized
         )
     endif()
 

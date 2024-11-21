@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS NO)
 
 set(productName "amigaMon")
 
-project("${productName}" VERSION 0.0.3)
+project("${productName}" VERSION 0.1.0)
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 createProject("${productName}")
