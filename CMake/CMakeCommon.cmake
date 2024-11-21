@@ -107,12 +107,13 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
                 "/wd4018"
                 "/wd4127"
         )
-    else ()
+    else()
         target_compile_options(${appName}
                 PUBLIC
                 -Wno-error=unused-variable
                 -Wno-error=sign-compare
-                -Wno-error=maybe-uninitialized
+                $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Linux>>:-Wno-error=maybe-uninitialized>
+                $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Darwin>>:-Wno-error=uninitialized>
         )
     endif()
 
