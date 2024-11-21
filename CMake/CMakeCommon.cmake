@@ -112,8 +112,8 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
                 PUBLIC
                 -Wno-error=unused-variable
                 -Wno-error=sign-compare
-                $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Linux>>:-Wno-error=maybe-uninitialized>
-                $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Darwin>>:-Wno-error=uninitialized>
+                $<$<PLATFORM_ID:Linux>:-Wno-maybe-uninitialized>
+                $<$<PLATFORM_ID:Darwin>:-Wno-error=uninitialized>
         )
     endif()
 
