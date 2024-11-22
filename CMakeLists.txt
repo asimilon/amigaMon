@@ -45,6 +45,10 @@ target_compile_definitions(vAmigaCore
             TPP=1
 )
 
+get_target_property(current_options vAmigaCore COMPILE_OPTIONS)
+list(REMOVE_ITEM current_options "-Werror")
+set_target_properties(vAmigaCore PROPERTIES COMPILE_OPTIONS "${current_options}")
+
 addGuiApp("${productName}" "${SourceFiles}" "${JUCE_DEPENDENCIES}" "${SourceFolders}" "Resources/icon.png" "${JUCE_OPTIONS}")
 
 list(TRANSFORM SourceFolders PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
