@@ -16,7 +16,7 @@ createProject("${productName}")
 CPMAddPackage(
         NAME vAmiga
         GIT_REPOSITORY https://github.com/asimilon/vAmiga.git
-        GIT_TAG origin/halt_check
+        GIT_TAG origin/warnings
         SOURCE_SUBDIR Emulator
 )
 
