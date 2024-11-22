@@ -113,10 +113,10 @@ namespace amigaMon {
                 const auto green = (pixel >> 8) & 0xFF;
                 const auto blue = pixel & 0xFF;
                 auto ptr = bitmapData.getPixelPointer(x, y);
-                ptr[0] = red;
-                ptr[1] = green;
-                ptr[2] = blue;
-                ptr[3] = alpha;
+                ptr[0] = static_cast<juce::uint8>(red);
+                ptr[1] = static_cast<juce::uint8>(green);
+                ptr[2] = static_cast<juce::uint8>(blue);
+                ptr[3] = static_cast<juce::uint8>(alpha);
             }
         }
         repaint();

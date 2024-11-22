@@ -9,7 +9,7 @@ public:
         amiga.getAmiga().set(OPT_MEM_CHIP_RAM, 512);
         amiga.getAmiga().set(OPT_MEM_SLOW_RAM, 512);
         amiga.getAmiga().set(OPT_HOST_REFRESH_RATE, 50);
-    };
+    }
 
     const juce::String getApplicationName() override       { return JUCE_APPLICATION_NAME_STRING; }
     const juce::String getApplicationVersion() override    { return JUCE_APPLICATION_VERSION_STRING; }

@@ -36,7 +36,7 @@ namespace amigaMon {
 
         amiga.addChangeListener(this);
         // start timer at 50Hz
-        startTimer(1000.0f / 50.0f);
+        startTimer(static_cast<int>(1000.0f / 50.0f));
     }
 
     MainComponent::~MainComponent()
@@ -78,14 +78,14 @@ namespace amigaMon {
 
     void MainComponent::setTextureData(const uint32_t *buffer)
     {
-        constexpr int textureWidth = 912;
         const int xOffset = amiga.getDisplayOffsetX();
         const int yOffset = amiga.getDisplayOffsetY();
         const int imageWidth = amiga.getDisplayWidth() * 2;
         const int imageHeight = amiga.getDisplayHeight();
 
-        glBuffer.reserve(imageWidth * imageHeight);
-        glBuffer.resize(imageWidth * imageHeight);
+        const auto reserveSize = static_cast<size_t>(imageWidth * imageHeight);
+        glBuffer.reserve(reserveSize);
+        glBuffer.resize(reserveSize);
 
         // Scale and copy ARGB data to the OpenGL-compatible buffer
         for (int y = 0; y < imageHeight; ++y)
@@ -106,11 +106,14 @@ namespace amigaMon {
                 uint8_t red = (argb >> 16) & 0xFF;
                 uint8_t green = (argb >> 8) & 0xFF;
                 uint8_t blue = argb & 0xFF;
-                uint32_t output = (alpha << 24) | (blue << 16) | (green << 8) | red;
+                uint32_t output = (static_cast<uint32_t>(alpha) << 24)
+                                | (static_cast<uint32_t>(blue)  << 16)
+                                | (static_cast<uint32_t>(green) << 8)
+                                | static_cast<uint32_t>(red);
 #else
                 uint32_t output = argb;
 #endif
-                glBuffer[y * imageWidth + x] = output;
+                glBuffer[static_cast<size_t>(y * imageWidth + x)] = output;
             }
         }
 
@@ -187,12 +190,12 @@ namespace amigaMon {
         }
     }
 
-    void MainComponent::mouseEnter(const juce::MouseEvent &event)
+    void MainComponent::mouseEnter(const juce::MouseEvent &/*event*/)
     {
         setMouseCursor(juce::MouseCursor::NoCursor);
     }
 
-    void MainComponent::mouseExit(const juce::MouseEvent &event)
+    void MainComponent::mouseExit(const juce::MouseEvent &/*event*/)
     {
         setMouseCursor(juce::MouseCursor::NormalCursor);
     }

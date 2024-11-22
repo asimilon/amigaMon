@@ -7,7 +7,7 @@
 #include <utility>
 
 namespace amigaMon {
-    RecentFiles::RecentFiles(juce::File recentsFileToUse, int size)
+    RecentFiles::RecentFiles(juce::File recentsFileToUse, size_t size)
         : recentsFile(std::move(recentsFileToUse))
         , recentFilesMaxSize(size)
     {

@@ -31,7 +31,7 @@ namespace amigaMon {
         void audioDeviceIOCallbackWithContext(const float* const* inputChannelData, int numInputChannels,
                                               float* const* outputChannelData, int numOutputChannels,
                                               int numSamples, const juce::AudioIODeviceCallbackContext& context) override;
-        void audioDeviceError (const juce::String& errorMessage) override {}
+        void audioDeviceError (const juce::String& /*errorMessage*/) override {}
 
         juce::File getStartDirectory();
 

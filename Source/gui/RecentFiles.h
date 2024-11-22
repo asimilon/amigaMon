@@ -8,7 +8,7 @@
 namespace amigaMon {
     class RecentFiles {
     public:
-        RecentFiles(juce::File recentsFileToUse, int size);
+        RecentFiles(juce::File recentsFileToUse, size_t size);
         ~RecentFiles();
 
         [[nodiscard]] std::vector<juce::File> getRecentFiles() const;
@@ -18,7 +18,7 @@ namespace amigaMon {
         void saveRecents();
 
         const juce::File recentsFile;
-        const int recentFilesMaxSize;
+        const size_t recentFilesMaxSize;
 
         std::list<juce::File> recentFiles;
     };

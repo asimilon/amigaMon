@@ -44,7 +44,8 @@ namespace amigaMon {
         g.setColour(juce::Colours::white.withAlpha(0.8f));
         {
             juce::Graphics::ScopedSaveState state(g);
-            g.reduceClipRegion(0, amiga.getAudioMixFactor() * bounds.getHeight(), bounds.getWidth(), bounds.getHeight());
+            g.reduceClipRegion(0, static_cast<int>(amiga.getAudioMixFactor() * bounds.getHeight()),
+                               static_cast<int>(bounds.getWidth()), static_cast<int>(bounds.getHeight()));
             g.fillRoundedRectangle(bounds, 5.0f);
         }
         g.setColour(juce::Colours::black.withAlpha(0.6f));

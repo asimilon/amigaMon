@@ -104,7 +104,7 @@ namespace amigaMon {
         sampleRate = 0;
     }
 
-    void Amiga::audioDeviceIOCallbackWithContext(const float * const *inputChannelData, int numInputChannels,
+    void Amiga::audioDeviceIOCallbackWithContext(const float * const */*inputChannelData*/, int /*numInputChannels*/,
                                                  float * const *outputChannelData, int numOutputChannels,
                                                  int numSamples, const juce::AudioIODeviceCallbackContext &context)
     {
@@ -223,7 +223,7 @@ namespace amigaMon {
         menu.showMenuAsync(juce::PopupMenu::Options());
     }
 
-    void Amiga::callback(const void *thisRef, Message message)
+    void Amiga::callback(const void *, Message message)
     {
         if(instance == nullptr)
             return;
