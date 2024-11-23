@@ -38,6 +38,7 @@ namespace amigaMon {
             playPauseComponent.setBounds(topLeft);
             stepFrameComponent.setBounds(topRight);
             sizeComponent.setBounds(bottomLeft);
+            toFront(false);
         }
 
         auto lastSection = bounds.removeFromLeft(getHeight());

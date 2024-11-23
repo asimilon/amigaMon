@@ -13,6 +13,12 @@
 #include "Window.h"
 #include "gui/MainComponent.h"
 #include "gui/ControlsComponent.h"
+#include "gui/DebugComponent.h"
+#include "gui/CanQuitComponent.h"
+
+#ifdef JUCE_MAC
+extern "C" int getNativeTitleBarHeight();
+#endif
 
 namespace amigaMon {
     inline static Amiga* instance = nullptr;
@@ -33,6 +39,40 @@ namespace amigaMon {
         audioDeviceManager.removeAudioCallback(this);
     }
 
+    inline int getNativeTitleBarHeight()
+    {
+#if JUCE_MAC
+        return ::getNativeTitleBarHeight();
+#elif JUCE_WINDOWS
+        HWND hwnd = (HWND) getPeer()->getNativeHandle();
+        RECT windowRect, clientRect;
+        GetWindowRect(hwnd, &windowRect);
+        GetClientRect(hwnd, &clientRect);
+        int titleBarHeight = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+        return titleBarHeight;
+#elif JUCE_LINUX
+        // Assuming X11 is used
+        Display* display = XOpenDisplay(nullptr);
+        if (display == nullptr)
+            return 0;
+
+        Window root;
+        int x, y;
+        unsigned int width, height, borderWidth, depth;
+        Window window = (Window) getPeer()->getNativeHandle();
+        XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderWidth, &depth);
+
+        XWindowAttributes attributes;
+        XGetWindowAttributes(display, window, &attributes);
+        int titleBarHeight = attributes.y - y;
+
+        XCloseDisplay(display);
+        return titleBarHeight;
+#else
+        return 0; // Default implementation for other platforms
+#endif
+    }
+
     void Amiga::initialiseGUI(juce::String name, amigaMon::Amiga& amiga)
     {
         using namespace amigaMon;
@@ -44,22 +84,39 @@ namespace amigaMon {
         controlsWindow = std::make_unique<Window<ControlsComponent>>("Controls", amiga,
                                                                      Window<ControlsComponent>::resizable,
                                                                      controlsWindowConstrainer.get());
+        debugWindow = std::make_unique<Window<DebugComponent>>("Debug", amiga);
         auto display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
         mainWindow->setTopLeftPosition(display->userArea.getCentre().getX() - mainWindow->getWidth(),
                                        display->userArea.getCentre().getY() - mainWindow->getHeight());
         controlsWindow->setTopLeftPosition(mainWindow->getRight(), mainWindow->getY());
+        auto titleBarHeight = getNativeTitleBarHeight();
+        if (titleBarHeight == 0)
+            titleBarHeight = 26;
+        debugWindow->setTopLeftPosition(controlsWindow->getX(), controlsWindow->getBottom() + titleBarHeight);
+        juce::Timer::callAfterDelay(500, [this]() {
+            mainWindow->toFront(false);
+            controlsWindow->toFront(false);
+            debugWindow->toFront(false);
+        });
     }
 
     void Amiga::shutdownGUI()
     {
         mainWindow.reset();
         controlsWindow.reset();
+        screenSizeWindow.reset();
+        debugWindow.reset();
     }
 
     bool Amiga::canQuit()
     {
-        vAmiga.emu->resume();
-        return true;
+        showQuitConfirmation();
+        if (canAutoQuit)
+        {
+            vAmiga.emu->resume();
+            return true;
+        }
+        return false;
     }
 
     void Amiga::start()
@@ -223,6 +280,21 @@ namespace amigaMon {
         menu.showMenuAsync(juce::PopupMenu::Options());
     }
 
+    void Amiga::enableAutoQuit()
+    {
+        canAutoQuit = true;
+    }
+
+    void Amiga::closeQuitConfirmation()
+    {
+        confirmQuitWindow.reset();
+    }
+
+    juce::LookAndFeel* Amiga::getLookAndFeel()
+    {
+        return &lookAndFeel;
+    }
+
     void Amiga::callback(const void *, Message message)
     {
         if(instance == nullptr)
@@ -258,6 +330,24 @@ namespace amigaMon {
             settingsFolder.createDirectory();
         }
         return settingsFolder;
+    }
+
+    void Amiga::showQuitConfirmation()
+    {
+        if (confirmQuitWindow == nullptr)
+        {
+            using namespace amigaMon;
+            confirmQuitWindow = std::make_unique<Window<CanQuitComponent>>("Quit?", *this);
+            // centre window on screen
+            auto display = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+            confirmQuitWindow->setTopLeftPosition(display->userArea.getCentre().getX() - confirmQuitWindow->getWidth() / 2,
+                                                  display->userArea.getCentre().getY() - confirmQuitWindow->getHeight() / 2);
+            confirmQuitWindow->toFront(true);
+        }
+        else
+        {
+            confirmQuitWindow->toFront(true);
+        }
     }
 
     juce::File Amiga::getSettingsFile()

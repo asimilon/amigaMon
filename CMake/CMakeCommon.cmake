@@ -98,21 +98,12 @@ function(addGuiApp appName AppSourceFiles Modules SourceFolders iconPath juceOpt
                 ${Modules}
                 ${ProjectDependsOn}
                 ${BinaryDataTargets}
-            PUBLIC
-                juce::juce_recommended_config_flags
-                juce::juce_recommended_lto_flags
-                juce::juce_recommended_warning_flags
     )
 
     list(TRANSFORM SourceFolders PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
     target_include_directories("${appName}" PRIVATE ${SourceFolders})
 
     set_target_properties("${appName}" PROPERTIES XCODE_GENERATE_SCHEME ON)
-
-    target_compile_options(${appName} PRIVATE
-            $<$<CXX_COMPILER_ID:MSVC>:/WX->
-            $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-error>
-    )
 
 endfunction()
 

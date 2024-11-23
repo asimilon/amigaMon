@@ -7,6 +7,7 @@
 #include <VAmiga.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "gui/LookAndFeel.h"
 
 namespace amigaMon {
     class Amiga : public juce::AudioIODeviceCallback, public juce::ChangeBroadcaster
@@ -17,6 +18,7 @@ namespace amigaMon {
 
         void initialiseGUI(juce::String name, amigaMon::Amiga& amiga);
         void shutdownGUI();
+
         bool canQuit();
 
         void start();
@@ -56,6 +58,12 @@ namespace amigaMon {
 
         void showSaveSettingsPopup();
 
+        void enableAutoQuit();
+
+        void closeQuitConfirmation();
+
+        juce::LookAndFeel* getLookAndFeel();
+
         static void callback(const void *thisRef, Message message);
 
         std::atomic<bool> shouldAdvanceFrame { false };
@@ -68,11 +76,14 @@ namespace amigaMon {
 
         static juce::File getSettingsFolder();
     private:
+        void showQuitConfirmation();
+
         static constexpr double aspectRatio = 600.0 / 200.0;
         static juce::File getSettingsFile();
 
         void loadSettings();
 
+        amigaMon::LookAndFeel lookAndFeel;
         vamiga::VAmiga vAmiga;
 
         juce::AudioDeviceManager audioDeviceManager;
@@ -91,6 +102,10 @@ namespace amigaMon {
         std::unique_ptr<juce::DocumentWindow> mainWindow;
         std::unique_ptr<juce::DocumentWindow> controlsWindow;
         std::unique_ptr<juce::DocumentWindow> screenSizeWindow;
+        std::unique_ptr<juce::DocumentWindow> debugWindow;
+        std::unique_ptr<juce::DocumentWindow> confirmQuitWindow;
         std::unique_ptr<juce::ComponentBoundsConstrainer> controlsWindowConstrainer;
+
+        bool canAutoQuit = false;
     };
 } // amigaMon namespace

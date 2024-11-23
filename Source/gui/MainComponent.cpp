@@ -37,6 +37,7 @@ namespace amigaMon {
         amiga.addChangeListener(this);
         // start timer at 50Hz
         startTimer(static_cast<int>(1000.0f / 50.0f));
+        toFront(false);
     }
 
     MainComponent::~MainComponent()

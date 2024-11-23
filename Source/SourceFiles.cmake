@@ -6,6 +6,10 @@ set(SourceFiles
         gui/ControlsComponent.cpp
         gui/ScreenSizeComponent.cpp
         gui/RecentFiles.cpp
+        gui/DebugComponent.cpp
+        gui/NativeTitleBarHeight.mm
+        gui/CanQuitComponent.cpp
+        gui/LookAndFeel.cpp
 
         gui/controls/AudioMixComponent.cpp
         gui/controls/IconBase.cpp
